@@ -91,7 +91,7 @@ class BlocksTable extends Component {
     return (
       <thead>
         <tr>
-          <th>Id</th>
+          <th>Block Id Hash</th>
           <th>Timestamp</th>
           <th>Actions</th>
         </tr>
