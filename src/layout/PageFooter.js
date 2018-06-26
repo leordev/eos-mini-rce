@@ -15,7 +15,7 @@ class PageFooter extends Component {
                     </Column>
                 </Columns>
                 <Content isSize='small'>
-                    <p>The source code is licensed under <a target="_blank" href="https://opensource.org/licenses/MIT" rel="noopener noreferrer">MIT</a>.</p>
+                    <p>The source code is licensed under <a target="_blank" href="https://raw.githubusercontent.com/leordev/eos-mini-rce/master/LICENSE" rel="noopener noreferrer">MIT</a>.</p>
                 </Content>
             </Content>
         </Container>
