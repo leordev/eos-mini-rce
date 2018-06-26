@@ -2,19 +2,22 @@ import React, { Component } from 'react'
 import { Table } from 'bloomer'
 import moment from 'moment'
 import Button from '../components/Button'
+import BlockActionsModal from './BlockActionsModal'
 import './BlocksTable.css'
 
 class BlocksTable extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { expandedBlocks: [] }
+    this.state = { expandedBlocks: [], showActions: null, currentBlockNum: null }
     this.expandBlock = this.expandBlock.bind(this);
     this.collapseBlock = this.collapseBlock.bind(this);
     this.renderBlockRow = this.renderBlockRow.bind(this);
     this.renderEmptyRow = this.renderEmptyRow.bind(this);
     this.renderBody = this.renderBody.bind(this);
     this.renderHeader = this.renderHeader.bind(this);
+    this.showActions = this.showActions.bind(this);
+    this.closeActions = this.closeActions.bind(this);
   }
 
   expandBlock(blockId) {
@@ -24,7 +27,7 @@ class BlocksTable extends Component {
   }
 
   collapseBlock(blockId) {
-    const expandedBlocks = this.state.expandedBlocks.filter(b => b != blockId)
+    const expandedBlocks = this.state.expandedBlocks.filter(b => b !== blockId)
     console.log(expandedBlocks)
     this.setState({expandedBlocks})
   }
@@ -39,10 +42,21 @@ class BlocksTable extends Component {
     )
   }
 
+  showActions(blockNum, actions) {
+    this.setState({showActions: actions, currentBlockNum: blockNum})
+  }
+
+  closeActions() {
+    this.setState({showActions: null, currentBlockNum: null})
+  }
+
   renderBlockRow(block) {
-    let actions = 0
+    let actions = []
     block.transactions.forEach(t => {
-      actions += (t.trx.transaction && t.trx.transaction.actions.length) || 0
+      const as = (t.trx.transaction && t.trx.transaction.actions)
+      if (as && as.length) {
+        actions = actions.concat(as)
+      }
     })
 
     const isExpanded = this.state.expandedBlocks.filter(b => b === block.id).length
@@ -61,14 +75,19 @@ class BlocksTable extends Component {
     const utcDate = moment.utc(block.timestamp).toDate();
     const timestamp = moment(utcDate).local().format('YYYY-MM-DD HH:mm:ss.S')
 
+    const viewActionsButton = actions.length > 0 &&
+      <Button icon="book" size="small"
+              onClick={()=> this.showActions(block.block_num, actions)} />
+
     return (
       <tr key={block.id}>
         <td>
-          <p>{button} {block.id}</p>
+          <p>{button} {block.block_num} / {block.id}</p>
           {expandedData}
+
         </td>
         <td>{timestamp}</td>
-        <td>{actions}</td>
+        <td>{actions.length} {viewActionsButton}</td>
       </tr>
     )
   }
@@ -91,7 +110,7 @@ class BlocksTable extends Component {
     return (
       <thead>
         <tr>
-          <th>Block Id Hash</th>
+          <th>Block Num / Hash</th>
           <th>Timestamp</th>
           <th>Actions</th>
         </tr>
@@ -102,16 +121,28 @@ class BlocksTable extends Component {
   render() {
 
     const { blocks } = this.props
+    const { currentBlockNum, showActions } = this.state
 
     const header = this.renderHeader()
 
     const body = this.renderBody(blocks)
 
+    console.log(currentBlockNum, showActions)
+
     return (
-      <Table isBordered isStriped width={'100%'}>
-        {header}
-        {body}
-      </Table>
+      <div>
+        <Table isBordered isStriped width={'100%'}>
+          {header}
+          {body}
+        </Table>
+
+        {showActions && currentBlockNum &&
+          <BlockActionsModal isActive
+                            onClose={this.closeActions}
+                            actions={showActions}
+                            blockNum={currentBlockNum} />
+        }
+      </div>
     )
   }
 }

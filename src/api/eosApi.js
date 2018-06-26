@@ -30,6 +30,20 @@ const readChainAndTop10Blocks = async () => {
   return { chainData, blocks }
 }
 
+/**
+ * Read a Ricardian Contract content for a given account::action
+ */
+const readRicardianContract = async (account, action) => {
+  const abiData = await eos.getAbi(account)
+
+  if (abiData && abiData.abi && abiData.abi.actions) {
+    const abiAction = abiData.abi.actions.find(a => a.name == action)
+    return abiAction.ricardian_contract
+  }
+
+  return "ABI or Ricard Contract Not Found"
+}
+
 const getTransactionActions = (transactionId) => {
     return fetch(`${RPC_ENDPOINT}/history/get_transaction`, {
       body: JSON.stringify({id: transactionId}),
@@ -81,5 +95,6 @@ const getActionContract = (action) => {
 // }
 
 export {
-  readChainAndTop10Blocks
+  readChainAndTop10Blocks,
+  readRicardianContract
 }

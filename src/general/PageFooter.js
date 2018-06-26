@@ -3,7 +3,7 @@ import { Container, Icon, Content, Columns, Column, Footer } from 'bloomer'
 
 class PageFooter extends Component {
   render() {
-    return (<Footer className="has-margin-top">
+    return (<Footer className="has-margin-top has-text-centered">
         <Container>
             <Content>
                 <Columns>

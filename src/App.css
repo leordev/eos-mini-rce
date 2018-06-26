@@ -1,12 +1,9 @@
-.App {
-  text-align: center;
-}
-
 .App-logo {
   height: 100px;
 }
 
 .App-header {
+  text-align: center;
   background-color: #EEEFF3;
   height: 180px;
   padding: 20px;
