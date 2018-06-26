@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Table } from 'bloomer'
+import moment from 'moment'
 import Button from '../components/Button'
 import './BlocksTable.css'
 
@@ -46,17 +47,19 @@ class BlocksTable extends Component {
 
     const isExpanded = this.state.expandedBlocks.filter(b => b === block.id).length
 
-    const buttonAction = isExpanded ?
-      () => this.collapseBlock(block.id) :
-      () => this.expandBlock(block.id)
+    let buttonAction, button, expandedData = null
 
-    const button = isExpanded ?
-      <Button color="danger" icon="minus-circle" size="small" onClick={buttonAction} /> :
-      <Button color="info" icon="plus-circle" size="small" onClick={buttonAction} />
+    if (isExpanded) {
+      buttonAction = () => this.collapseBlock(block.id)
+      button = <Button color="danger" icon="minus-circle" size="small" onClick={buttonAction} />
+      expandedData = <pre className="BlocksTable-pre">{JSON.stringify(block, null, 2)}</pre>
+    } else {
+      buttonAction = () => this.expandBlock(block.id)
+      button = <Button color="info" icon="plus-circle" size="small" onClick={buttonAction} />
+    }
 
-    const expandedData = isExpanded ?
-      <pre className="BlocksTable-pre">{JSON.stringify(block, null, 2)}</pre> :
-      null
+    const utcDate = moment.utc(block.timestamp).toDate();
+    const timestamp = moment(utcDate).local().format('YYYY-MM-DD HH:mm:ss.S')
 
     return (
       <tr key={block.id}>
@@ -64,7 +67,7 @@ class BlocksTable extends Component {
           <p>{button} {block.id}</p>
           {expandedData}
         </td>
-        <td>{block.timestamp}</td>
+        <td>{timestamp}</td>
         <td>{actions}</td>
       </tr>
     )
