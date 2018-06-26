@@ -1,49 +1,47 @@
 import React, { Component } from 'react'
 import { Field, Content, Control, Select, Modal, ModalBackground, ModalCardHeader, ModalCardTitle, ModalCard, Delete, ModalCardBody, ModalCardFooter } from 'bloomer'
 import ReactMarkdown from 'react-markdown'
-import Handlebars from 'handlebars'
-import { readRicardianContract } from '../api/eosApi'
 
-class BlockActionsModal extends Component {
+import { readRcWithData } from '../lib/eosRcParser'
+
+class ActionsModal extends Component {
 
   constructor(props) {
     super(props)
-    this.state = {isLoading: false, ricardianContract: null, selectedAction: ''}
+    this.state = {isLoading: false, ricardianContract: null, selectedAction: null}
     this.readContract = this.readContract.bind(this)
     this.readContractLoadOk = this.readContractLoadOk.bind(this)
     this.readContractLoadFailure = this.readContractLoadFailure.bind(this)
   }
 
   readContract(e) {
-    console.log(e)
-
     const value = e.target.value
+    const { actions } = this.props
 
-    if (!value) return
+    const action = value && actions.find(a => a.internalId === value)
 
-    const values = value.split('-')
+    if (action) {
+      const selectedAction = value
+      this.setState({isLoading: true, ricardianContract: null,
+        selectedAction})
 
-    if (values.length !== 3) return
-
-    const selectedAction = {account: values[1], name: values[2]}
-
-    this.setState({isLoading: true, ricardianContract: null,
-      selectedAction})
-
-    readRicardianContract(values[1], values[2])
-      .then(this.readContractLoadOk)
-      .catch(this.readContractLoadFailure)
+      readRcWithData(action.account, action.name, action.data)
+        .then(this.readContractLoadOk)
+        .catch(this.readContractLoadFailure)
+    } else {
+      this.setState({ricardianContract:null, selectedAction: null})
+    }
   }
 
   readContractLoadOk(data) {
     this.setState({
       isLoading: false,
-      ricardianContract: data || 'Empty Ricardian Contract'
+      ricardianContract: data
     })
   }
 
   readContractLoadFailure(error) {
-    const msg = 'Fail to read EOS Contract Data: \n' + JSON.stringify(error)
+    const msg = 'Fail to read EOS Contract Data: \n' + error
     console.error(msg, error)
     alert(msg)
     this.setState({
@@ -51,20 +49,15 @@ class BlockActionsModal extends Component {
     })
   }
 
-  actionValue(action) {
-    return action ? `act-${action.account}-${action.name}` : ''
-  }
-
   actionsMenu() {
     const {actions} = this.props
     const {selectedAction, isLoading} = this.state
 
     const options = actions.map(action => {
-      const id = this.actionValue(action)
       const label = `${action.account}::${action.name}`
 
       return (
-        <option key={id} value={id}>
+        <option key={action.internalId} value={action.internalId}>
           {label}
         </option>
       )
@@ -74,7 +67,7 @@ class BlockActionsModal extends Component {
       <Field>
           <Control>
               <Select onChange={this.readContract}
-                      value={this.actionValue(selectedAction)}
+                      value={selectedAction || ''}
                       isLoading={isLoading}>
                   <option value={''}>
                     Select an Action to View Ricardian Contract
@@ -87,40 +80,47 @@ class BlockActionsModal extends Component {
   }
 
   renderActionRicardianContract() {
-    const { ricardianContract, selectedAction } = this.state
-    const { actions } = this.props
-
-    const action = actions.find(a => a.account == selectedAction.account &&
-      a.name == selectedAction.name)
-
-    const contractTemplate = Handlebars.compile(ricardianContract)
-    const contractParsed = contractTemplate(action.data)
+    const { ricardianContract } = this.state
 
     return (
       <Content>
-        <ReactMarkdown source={contractParsed} />
+        <ReactMarkdown source={ricardianContract} />
       </Content>
     )
   }
 
   render() {
 
-    const { blockNum, isActive, onClose } = this.props
+    const { blockNum, transactionId, isActive, onClose } = this.props
     const {selectedAction, isLoading} = this.state
+
+    let title
+
+    if (blockNum) {
+      const blockNumTxt = Number(blockNum).toLocaleString()
+      title = `Actions found in Block ${blockNumTxt}`
+    } else {
+      const blockNumTxt = Number(blockNum).toLocaleString()
+      title = `Actions for Trx ${transactionId.substring(0,10)}...`
+    }
+
+    let content = <p>Please select an Action Above to view Ricardian Contract</p>
+    if (isLoading)
+      content = <p>Please Wait, Loading...</p>
+    else if (selectedAction)
+      content = this.renderActionRicardianContract()
 
     return (
       <Modal isActive={isActive}>
           <ModalBackground />
           <ModalCard>
             <ModalCardHeader>
-                <ModalCardTitle>Actions found in Block {blockNum}</ModalCardTitle>
+                <ModalCardTitle>{title}</ModalCardTitle>
                 <Delete onClick={onClose} />
             </ModalCardHeader>
             <ModalCardBody>
                 {this.actionsMenu()}
-                {isLoading ? <p>Please Wait, Loading...</p> :
-                  !selectedAction ? <p>Please select an Action Above to view Ricardian Contract</p> :
-                  this.renderActionRicardianContract()}
+                {content}
             </ModalCardBody>
             <ModalCardFooter></ModalCardFooter>
           </ModalCard>
@@ -129,4 +129,4 @@ class BlockActionsModal extends Component {
   }
 }
 
-export default BlockActionsModal;
+export default ActionsModal

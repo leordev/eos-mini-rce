@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Table } from 'bloomer'
-import moment from 'moment'
+import { utcToLocal } from '../lib/utils'
 import Button from '../components/Button'
-import BlockActionsModal from './BlockActionsModal'
+import ActionsModal from '../actions/ActionsModal'
 import './BlocksTable.css'
 
 class BlocksTable extends Component {
@@ -22,24 +22,12 @@ class BlocksTable extends Component {
 
   expandBlock(blockId) {
     const expandedBlocks = this.state.expandedBlocks.concat(blockId)
-    console.log(this.state.expandedBlocks, expandedBlocks)
     this.setState({expandedBlocks})
   }
 
   collapseBlock(blockId) {
     const expandedBlocks = this.state.expandedBlocks.filter(b => b !== blockId)
-    console.log(expandedBlocks)
     this.setState({expandedBlocks})
-  }
-
-  renderEmptyRow() {
-    return (
-      <tr>
-        <td colSpan={3}>
-          No data is available. Please check your Internet Connection.
-        </td>
-      </tr>
-    )
   }
 
   showActions(blockNum, actions) {
@@ -50,54 +38,86 @@ class BlocksTable extends Component {
     this.setState({showActions: null, currentBlockNum: null})
   }
 
-  renderBlockRow(block) {
-    let actions = []
-    block.transactions.forEach(t => {
-      const as = (t.trx.transaction && t.trx.transaction.actions)
-      if (as && as.length) {
-        actions = actions.concat(as)
-      }
-    })
-
-    const isExpanded = this.state.expandedBlocks.filter(b => b === block.id).length
-
-    let buttonAction, button, expandedData = null
-
-    if (isExpanded) {
-      buttonAction = () => this.collapseBlock(block.id)
-      button = <Button color="danger" icon="minus-circle" size="small" onClick={buttonAction} />
-      expandedData = <pre className="BlocksTable-pre">{JSON.stringify(block, null, 2)}</pre>
-    } else {
-      buttonAction = () => this.expandBlock(block.id)
-      button = <Button color="info" icon="plus-circle" size="small" onClick={buttonAction} />
-    }
-
-    const utcDate = moment.utc(block.timestamp).toDate();
-    const timestamp = moment(utcDate).local().format('YYYY-MM-DD HH:mm:ss.S')
-
-    const viewActionsButton = actions.length > 0 &&
-      <Button icon="book" size="small"
-              onClick={()=> this.showActions(block.block_num, actions)} />
-
+  renderEmptyRow(isLoading) {
     return (
-      <tr key={block.id}>
-        <td>
-          <p>{button} {block.block_num} / {block.id}</p>
-          {expandedData}
-
+      <tr>
+        <td colSpan={4}>
+          {isLoading ?
+            'Please wait, blocks are being loaded' :
+            'No blocks are available.'
+          }
         </td>
-        <td>{timestamp}</td>
-        <td>{actions.length} {viewActionsButton}</td>
       </tr>
     )
   }
 
-  renderBody(blocks) {
+  renderBlockActionsCol(block) {
+    let actions = []
+    block.transactions.forEach(t => {
+      const trxActions = (t.trx.transaction && t.trx.transaction.actions)
+      if (trxActions) {
+        trxActions.forEach((action, index) => {
+          actions.push({
+            ...action,
+            internalId: `${t.trx.id}-${index}`
+          })
+        })
+      }
+    })
+
+    const button = actions.length > 0 &&
+      <Button icon="book" size="small"
+              onClick={()=> this.showActions(block.block_num, actions)} />
+
+    return(<td>{actions.length} {button}</td>)
+  }
+
+  renderBlockHashExpansionCol(block) {
+    const isExpanded = this.state.expandedBlocks.filter(b => b === block.id).length
+
+    let button, expandedData = null
+
+    if (isExpanded) {
+      button = <Button color="danger"
+                       icon="minus-circle"
+                       size="small"
+                       onClick={() => this.collapseBlock(block.id)} />
+      expandedData = <pre className="BlocksTable-pre">{JSON.stringify(block, null, 2)}</pre>
+    } else {
+      button = <Button color="info"
+                       icon="plus-circle"
+                       size="small"
+                       onClick={() => this.expandBlock(block.id)} />
+    }
+
+    return(
+      <td>
+        <p>{button} {block.id}</p>
+        {expandedData}
+      </td>
+    )
+  }
+
+  renderBlockRow(block) {
+
+    const timestamp = utcToLocal(block.timestamp).format('YYYY-MM-DD HH:mm:ss.S')
+
+    return (
+      <tr key={block.id}>
+        <td>{block.block_num}</td>
+        {this.renderBlockHashExpansionCol(block)}
+        <td>{timestamp}</td>
+        {this.renderBlockActionsCol(block)}
+      </tr>
+    )
+  }
+
+  renderBody(blocks, isLoading) {
 
     const content =
-      blocks && blocks.length ?
+      blocks && blocks.length && !isLoading ?
         blocks.map(this.renderBlockRow) :
-        this.renderEmptyRow()
+        this.renderEmptyRow(isLoading)
 
     return (
       <tbody>
@@ -110,7 +130,8 @@ class BlocksTable extends Component {
     return (
       <thead>
         <tr>
-          <th>Block Num / Hash</th>
+          <th>Block Num</th>
+          <th>Block Hash</th>
           <th>Timestamp</th>
           <th>Actions</th>
         </tr>
@@ -120,14 +141,11 @@ class BlocksTable extends Component {
 
   render() {
 
-    const { blocks } = this.props
+    const { blocks, isLoading } = this.props
     const { currentBlockNum, showActions } = this.state
 
     const header = this.renderHeader()
-
-    const body = this.renderBody(blocks)
-
-    console.log(currentBlockNum, showActions)
+    const body = this.renderBody(blocks, isLoading)
 
     return (
       <div>
@@ -137,10 +155,10 @@ class BlocksTable extends Component {
         </Table>
 
         {showActions && currentBlockNum &&
-          <BlockActionsModal isActive
-                            onClose={this.closeActions}
-                            actions={showActions}
-                            blockNum={currentBlockNum} />
+          <ActionsModal isActive
+                        onClose={this.closeActions}
+                        actions={showActions}
+                        blockNum={currentBlockNum} />
         }
       </div>
     )

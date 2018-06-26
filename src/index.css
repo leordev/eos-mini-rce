@@ -3,3 +3,15 @@
 .has-margin-top {
   margin-top: 20px;
 }
+
+.has-margin-right {
+  margin-right: 8px;
+}
+
+.is-left {
+  float: left;
+}
+
+.is-right {
+  float: right;
+}

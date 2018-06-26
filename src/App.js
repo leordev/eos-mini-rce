@@ -1,17 +1,15 @@
 import React, { Component } from 'react'
-import { Container, Box, Level, LevelLeft, LevelRight, Subtitle } from 'bloomer'
+import { Container, Box, Level, LevelLeft, LevelRight, LevelItem, Subtitle } from 'bloomer'
 import moment from 'moment'
-
-// ours
-import { readChainAndTop10Blocks } from './api/eosApi'
+import { readChainLastBlocks } from './lib/eosApi';
 import Button from './components/Button'
-import PageFooter from './general/PageFooter'
+import PageHeader from './layout/PageHeader'
+import PageFooter from './layout/PageFooter'
 import BlocksTable from './blocks/BlocksTable'
-
-// static
-import logo from './logo.gif'
+import ActionsExplorer from './actions/ActionsExplorer'
 import './App.css'
 
+const LAST_BLOCKS_QTY = 10
 class App extends Component {
 
   constructor(props) {
@@ -32,7 +30,7 @@ class App extends Component {
       isLoading: true
     })
 
-    readChainAndTop10Blocks()
+    readChainLastBlocks(LAST_BLOCKS_QTY)
       .then(this.loadChainAndBlocksData)
       .catch(this.loadChainAndBlocksDataFailure)
   }
@@ -47,7 +45,7 @@ class App extends Component {
   }
 
   loadChainAndBlocksDataFailure(error) {
-    const msg = 'Fail to read EOS Data: \n' + JSON.stringify(error)
+    const msg = 'Fail to read EOS Data: \n' + error
     console.error(msg, error)
     alert(msg)
     this.setState({
@@ -60,9 +58,9 @@ class App extends Component {
     this.refreshChainAndBlocksData()
   }
 
-  render() {
+  renderHeader() {
 
-    const { chainData, isLoading, blocks, lastLoadAt } = this.state
+    const { chainData, isLoading, lastLoadAt } = this.state
 
     const headerBlock = chainData && chainData.head_block_num ?
       Number(chainData.head_block_num).toLocaleString() :
@@ -73,35 +71,44 @@ class App extends Component {
       <span>Last Loaded Block Header: <strong>{headerBlock}</strong> at {lastLoadAt}</span>
 
     return (
+      <Box className="has-margin-top">
+        <Level>
+          <LevelLeft>
+            <LevelItem>
+            <Button color='success'
+                    isLoading={isLoading}
+                    onClick={this.doRefresh}
+                    icon='refresh' />
+            </LevelItem>
+            <LevelItem>
+              <Subtitle tag='p' isSize={5}>
+                {title}
+              </Subtitle>
+            </LevelItem>
+          </LevelLeft>
+          <LevelRight>
+            <LevelItem>
+              <ActionsExplorer />
+            </LevelItem>
+          </LevelRight>
+        </Level>
+      </Box>
+    )
+
+  }
+
+  render() {
+
+    const {isLoading, blocks } = this.state
+
+    return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="title">EOS Mini Ricardian Contract Explorer</h1>
-        </header>
-
+        <PageHeader />
         <Container>
-          <Box className="has-margin-top">
-            <Level>
-              <LevelLeft>
-                <Subtitle tag='p' isSize={5}>
-                  {title}
-                </Subtitle>
-              </LevelLeft>
-              <LevelRight>
-                <Button color='success'
-                        isLoading={isLoading}
-                        onClick={this.doRefresh}
-                        icon='refresh'
-                        text='Reload Blocks' />
-              </LevelRight>
-            </Level>
-          </Box>
-
-          <BlocksTable blocks={blocks} />
+          {this.renderHeader()}
+          <BlocksTable blocks={blocks} isLoading={isLoading} />
         </Container>
-
         <PageFooter />
-
       </div>
     );
   }
