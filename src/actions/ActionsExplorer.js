@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import Button from '../components/Button'
 import ActionsModal from './ActionsModal'
-import {LevelRight, LevelItem, Input, Field, Control} from 'bloomer'
+import {Input, Field} from 'bloomer'
 
 import { getTransactionActions } from '../lib/eosApi'
 

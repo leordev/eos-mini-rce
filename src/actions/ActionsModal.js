@@ -53,7 +53,7 @@ class ActionsModal extends Component {
     const {actions} = this.props
     const {selectedAction, isLoading} = this.state
 
-    const options = actions.map(action => {
+    const options = (actions || []).map(action => {
       const label = `${action.account}::${action.name}`
 
       return (
@@ -94,13 +94,12 @@ class ActionsModal extends Component {
     const { blockNum, transactionId, isActive, onClose } = this.props
     const {selectedAction, isLoading} = this.state
 
-    let title
+    let title = 'Unknown Actions'
 
     if (blockNum) {
       const blockNumTxt = Number(blockNum).toLocaleString()
       title = `Actions found in Block ${blockNumTxt}`
-    } else {
-      const blockNumTxt = Number(blockNum).toLocaleString()
+    } else if (transactionId) {
       title = `Actions for Trx ${transactionId.substring(0,10)}...`
     }
 
