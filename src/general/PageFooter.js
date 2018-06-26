@@ -7,15 +7,15 @@ class PageFooter extends Component {
         <Container>
             <Content>
                 <Columns>
-                    <Column isFull>
+                    <Column>
                         <p>
                             Made with<Icon hasTextColor="danger" className="fa fa-heart"></Icon>
-                            by <a href="https://leordev.github.io/" target="_blank">Leo Ribeiro</a>
+                            by <a href="https://leordev.github.io/" target="_blank" rel="noopener noreferrer">Leo Ribeiro</a>
                         </p>
                     </Column>
                 </Columns>
                 <Content isSize='small'>
-                    <p>The source code is licensed under <a target="_blank" href="https://opensource.org/licenses/MIT">MIT</a>.</p>
+                    <p>The source code is licensed under <a target="_blank" href="https://opensource.org/licenses/MIT" rel="noopener noreferrer">MIT</a>.</p>
                 </Content>
             </Content>
         </Container>

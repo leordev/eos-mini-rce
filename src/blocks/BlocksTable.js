@@ -7,7 +7,7 @@ class BlocksTable extends Component {
   renderEmptyRow() {
     return (
       <tr>
-        <td colspan='4'>
+        <td colSpan={3}>
           No data is available. Please check your Internet Connection.
         </td>
       </tr>
@@ -15,24 +15,28 @@ class BlocksTable extends Component {
   }
 
   renderBlockRow(block) {
-     return (
-        <tr>
-          <td>{block.id}</td>
-          <td>{block.timestamp}</td>
-          <td>{block.actions}</td>
-          <td>
-            <Button color='info' icon='plus-circle' />
-          </td>
-        </tr>
-     )
+    let actions = 0
+    block.transactions.forEach(t => {
+      actions += (t.trx.transaction && t.trx.transaction.actions.length) || 0
+    })
+
+    return (
+      <tr key={block.id}>
+        <td>
+          <Button color='info' icon='plus-circle' size='small' /> {block.id}
+        </td>
+        <td>{block.timestamp}</td>
+        <td>{actions}</td>
+      </tr>
+    )
   }
 
   renderBody(blocks) {
 
     const content =
       blocks && blocks.length ?
-      blocks.map(this.renderBlockRow) :
-      this.renderEmptyRow()
+        blocks.map(this.renderBlockRow) :
+        this.renderEmptyRow()
 
     return (
       <tbody>
@@ -48,7 +52,6 @@ class BlocksTable extends Component {
           <th>Id</th>
           <th>Timestamp</th>
           <th>Actions</th>
-          <th></th>
         </tr>
       </thead>
     )
@@ -63,7 +66,7 @@ class BlocksTable extends Component {
     const body = this.renderBody(blocks)
 
     return (
-      <Table isBordered isStriped>
+      <Table isBordered isStriped width={'100%'}>
         {header}
         {body}
       </Table>

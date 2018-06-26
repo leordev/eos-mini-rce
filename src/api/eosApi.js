@@ -1,11 +1,37 @@
-const rpcEndpoint = 'https://api.eosnewyork.io/v1'
 
-const getChainInfo = 'getChainInfo'
+import Eos from 'eosjs'
 
-const getBlockInfo = 'getBlockInfo'
+const RPC_ENDPOINT = 'https://api.eosnewyork.io'
+const BLOCKS_TO_LOAD = 10
+
+const eos = Eos({httpEndpoint: RPC_ENDPOINT})
+
+/**
+ * Recursive function to generate last 10 blocks array
+ */
+const last10Blocks = (num, index) => {
+  return index < BLOCKS_TO_LOAD ?
+    [num].concat(last10Blocks(num - 1, index + 1)) :
+    num
+}
+
+/**
+ * Function to Load Chain and Blocks Info
+ */
+const readChainAndTop10Blocks = async () => {
+  const chainData = await eos.getInfo({})
+
+  const blocksToLoad = last10Blocks(chainData.head_block_num, 1)
+
+  const blocksRequests = blocksToLoad.map(b => eos.getBlock(b))
+
+  const blocks = await Promise.all(blocksRequests)
+
+  return { chainData, blocks }
+}
 
 const getTransactionActions = (transactionId) => {
-    return fetch(`${rpcEndpoint}/history/get_transaction`, {
+    return fetch(`${RPC_ENDPOINT}/history/get_transaction`, {
       body: JSON.stringify({id: transactionId}),
       method: 'POST'
     })
@@ -14,13 +40,13 @@ const getTransactionActions = (transactionId) => {
 }
 
 const getActionContract = (action) => {
-    return fetch(`${rpcEndpoint}/chain/get_abi`, {
+    return fetch(`${RPC_ENDPOINT}/chain/get_abi`, {
       body: JSON.stringify({account_name: action.account }),
       method: 'POST'
     })
     .then(response => response.json())
     .then(json =>
-      json.abi.actions.filter(act => act.name == action.name)
+      json.abi.actions.filter(act => act.name === action.name)
         .map((act) =>
           ({ account: action.account,
              name: act.name,
@@ -55,7 +81,5 @@ const getActionContract = (action) => {
 // }
 
 export {
-  getChainInfo,
-  getBlockInfo,
-  getTransactionActions
+  readChainAndTop10Blocks
 }
