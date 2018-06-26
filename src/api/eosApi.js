@@ -1,7 +1,7 @@
 
 import Eos from 'eosjs'
 
-const RPC_ENDPOINT = 'https://api.eosnewyork.io'
+const RPC_ENDPOINT = 'https://eos.greymass.com'
 const BLOCKS_TO_LOAD = 10
 
 const eos = Eos({httpEndpoint: RPC_ENDPOINT})
