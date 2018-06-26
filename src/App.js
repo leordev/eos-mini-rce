@@ -16,10 +16,10 @@ class App extends Component {
 
   constructor(props) {
     super(props)
-    this.refreshChainAndBlocksData = this.refreshChainAndBlocksData.bind(this);
-    this.loadChainAndBlocksData = this.loadChainAndBlocksData.bind(this);
-    this.loadChainAndBlocksDataFailure = this.loadChainAndBlocksDataFailure.bind(this);
-    this.doRefresh = this.doRefresh.bind(this);
+    this.refreshChainAndBlocksData = this.refreshChainAndBlocksData.bind(this)
+    this.loadChainAndBlocksData = this.loadChainAndBlocksData.bind(this)
+    this.loadChainAndBlocksDataFailure = this.loadChainAndBlocksDataFailure.bind(this)
+    this.doRefresh = this.doRefresh.bind(this)
     this.state = {isLoading: false, chainData: null, blocks: null, lastLoadAt: 'Never'}
   }
 

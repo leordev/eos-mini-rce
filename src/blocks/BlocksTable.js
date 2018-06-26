@@ -1,8 +1,32 @@
 import React, { Component } from 'react'
 import { Table } from 'bloomer'
 import Button from '../components/Button'
+import './BlocksTable.css'
 
 class BlocksTable extends Component {
+
+  constructor(props) {
+    super(props)
+    this.state = { expandedBlocks: [] }
+    this.expandBlock = this.expandBlock.bind(this);
+    this.collapseBlock = this.collapseBlock.bind(this);
+    this.renderBlockRow = this.renderBlockRow.bind(this);
+    this.renderEmptyRow = this.renderEmptyRow.bind(this);
+    this.renderBody = this.renderBody.bind(this);
+    this.renderHeader = this.renderHeader.bind(this);
+  }
+
+  expandBlock(blockId) {
+    const expandedBlocks = this.state.expandedBlocks.concat(blockId)
+    console.log(this.state.expandedBlocks, expandedBlocks)
+    this.setState({expandedBlocks})
+  }
+
+  collapseBlock(blockId) {
+    const expandedBlocks = this.state.expandedBlocks.filter(b => b != blockId)
+    console.log(expandedBlocks)
+    this.setState({expandedBlocks})
+  }
 
   renderEmptyRow() {
     return (
@@ -20,10 +44,25 @@ class BlocksTable extends Component {
       actions += (t.trx.transaction && t.trx.transaction.actions.length) || 0
     })
 
+    const isExpanded = this.state.expandedBlocks.filter(b => b === block.id).length
+
+    const buttonAction = isExpanded ?
+      () => this.collapseBlock(block.id) :
+      () => this.expandBlock(block.id)
+
+    const button = isExpanded ?
+      <Button color="danger" icon="minus-circle" size="small" onClick={buttonAction} /> :
+      <Button color="info" icon="plus-circle" size="small" onClick={buttonAction} />
+
+    const expandedData = isExpanded ?
+      <pre className="BlocksTable-pre">{JSON.stringify(block, null, 2)}</pre> :
+      null
+
     return (
       <tr key={block.id}>
         <td>
-          <Button color='info' icon='plus-circle' size='small' /> {block.id}
+          <p>{button} {block.id}</p>
+          {expandedData}
         </td>
         <td>{block.timestamp}</td>
         <td>{actions}</td>
