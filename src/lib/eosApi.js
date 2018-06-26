@@ -8,6 +8,7 @@ const eos = Eos({httpEndpoint: RPC_ENDPOINT})
 
 /**
  * Function to Load Chain and Blocks Info
+ * @param {int} total quantity of blocks you want to read
  */
 const readChainLastBlocks = async (total = 10) => {
   const chainData = await eos.getInfo({})
@@ -23,6 +24,8 @@ const readChainLastBlocks = async (total = 10) => {
 
 /**
  * Read a Ricardian Contract content for a given account::action
+ * @param {string} account smart contract account
+ * @param {string} action desired action to query the contract
  */
 const readRicardianContract = async (account, action) => {
   const abiData = await eos.getAbi(account)
@@ -35,6 +38,10 @@ const readRicardianContract = async (account, action) => {
   return "ABI or Ricard Contract Not Found"
 }
 
+/**
+ * Read transaction actions for a given transaction hash id
+ * @param {string} transactionId transaction hash id
+ */
 const getTransactionActions = async (transactionId) => {
   const transaction = await eos.getTransaction(transactionId)
 
